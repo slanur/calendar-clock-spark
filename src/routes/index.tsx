@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 const START = 8 * 60, END = 22 * 60, SPAN = END - START;
 const DURUM_CLS: Record<E.Durum, string> = {
   ONAYLI: "bg-st-onayli/85 text-background",
-  KULLANIMDA: "bg-st-kullanimda text-primary-foreground",
+  KULLANIMDA: "bg-st-kullanimda text-foreground",
   TAMAMLANDI: "bg-st-tamam/80 text-background",
   GELMEDI: "bg-st-gelmedi/30 text-foreground border border-dashed border-st-gelmedi",
   IPTAL: "bg-st-iptal/25 text-muted-foreground border border-dashed border-st-iptal line-through",
@@ -70,7 +70,7 @@ function App() {
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-4 px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary font-mono text-sm font-bold text-primary-foreground">KP</div>
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">KP</div>
             <div>
               <div className="text-sm font-semibold leading-tight">Kampüs Kaynak Rezervasyon</div>
               <div className="font-mono text-[11px] text-muted-foreground">{dosya}</div>
@@ -199,7 +199,7 @@ function Takvim({ s, gun, setGun, secili, setSecili }: { s: E.State; gun: number
   const nowIn = s.saat - d0 >= START && s.saat - d0 <= END;
 
   return (
-    <section className="rounded-xl border bg-card">
+    <section className="rounded-xl border bg-card shadow-card">
       <div className="flex flex-wrap items-center gap-3 border-b px-5 py-3">
         <h2 className="text-base font-semibold">Kaynak takvimi</h2>
         <div className="flex items-center gap-1">
@@ -372,7 +372,7 @@ function KullaniciPaneli({ s, kul, setSecili }: { s: E.State; kul: E.Kullanici; 
 
 function Panel({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border bg-card p-5">
+    <section className="rounded-xl border bg-card shadow-card p-5">
       <div className="mb-3 flex items-center justify-between gap-2"><h2 className="text-base font-semibold">{title}</h2>{right}</div>
       {children}
     </section>
