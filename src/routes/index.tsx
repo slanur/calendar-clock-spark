@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 
 const START = 8 * 60, END = 22 * 60, SPAN = END - START;
 const DURUM_CLS: Record<E.Durum, string> = {
-  ONAYLI: "bg-st-onayli/85 text-background",
+  ONAYLI: "bg-st-onayli text-primary-foreground",
   KULLANIMDA: "bg-st-kullanimda text-foreground",
   TAMAMLANDI: "bg-st-tamam/80 text-background",
   GELMEDI: "bg-st-gelmedi/30 text-foreground border border-dashed border-st-gelmedi",
