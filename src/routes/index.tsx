@@ -28,9 +28,9 @@ const DURUM_DOT: Record<E.Durum, string> = {
   ONAYLI: "bg-st-onayli", KULLANIMDA: "bg-st-kullanimda", TAMAMLANDI: "bg-st-tamam", GELMEDI: "bg-st-gelmedi", IPTAL: "bg-st-iptal",
 };
 const SAATLER = Array.from({ length: 57 }, (_, i) => START + i * 15);
-const toMin = (hhmm: string) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+const toMin = (hhmm: string) => { const [h = 0, m = 0] = hhmm.split(":").map(Number); return h * 60 + m; };
 
-type Sonuc = { ok: boolean; title: string; lines: string[]; waitable?: E.Kalem & { u: string }; kalemler?: { kaynak: string; kod: string }[] };
+type Sonuc = { ok: boolean; title: string; lines: string[]; waitable?: (E.Kalem & { u: string }) | undefined; kalemler?: { kaynak: string; kod: string }[] };
 
 function App() {
   const [s, setS] = useState<E.State>(E.initialState);
@@ -275,7 +275,7 @@ function TalepFormu({ s, kul, gun, run, setSonuc }: { s: E.State; kul: E.Kullani
 
   const gonder = () => {
     if (mod === "tek") {
-      const p = parsed[0];
+      const p = parsed[0]!;
       const so = run((st: E.State) => E.rezervasyon(st, kul.id, p.kaynak, p.bas, p.bit));
       if (so.durum === "RED") {
         setSonuc({ ok: false, title: `Reddedildi · ${so.kod}`, lines: [E.HATA[so.kod] ?? so.kod],
@@ -284,8 +284,8 @@ function TalepFormu({ s, kul, gun, run, setSonuc }: { s: E.State; kul: E.Kullani
     } else {
       const so = run((st: E.State) => E.paket(st, kul.id, parsed));
       if (so.durum === "RED") {
-        if (so.kod === "PAKET_RED") setSonuc({ ok: false, title: "PAKET_RED · paket reddedildi", lines: [], kalemler: so.kalemler.map((c: string, i: number) => ({ kaynak: parsed[i].kaynak, kod: c })) });
-        else setSonuc({ ok: false, title: so.kod, lines: [E.HATA[so.kod]] });
+        if (so.kod === "PAKET_RED") setSonuc({ ok: false, title: "PAKET_RED · paket reddedildi", lines: [], kalemler: so.kalemler.map((c: string, i: number) => ({ kaynak: parsed[i]?.kaynak ?? "", kod: c })) });
+        else setSonuc({ ok: false, title: so.kod, lines: [E.HATA[so.kod] ?? so.kod] });
       } else setSonuc({ ok: true, title: `Paket onaylandı · ${so.paket_id}`, lines: [`Rezervasyonlar: ${so.rezervasyonlar.join(", ")}`, `Toplam: ${so.toplam} KP`, `Yeni bakiye: ${so.bakiye} KP`] });
     }
   };

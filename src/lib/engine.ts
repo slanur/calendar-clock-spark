@@ -178,7 +178,7 @@ export function paket(s: State, u: string, kalemler: Kalem[]) {
   }
   const pid = `p${s.seq.p + 1}`;
   let r = s.seq.r;
-  const yeni: Rez[] = kalemler.map((k, i) => ({ id: `r${++r}`, kullanici: u, kaynak: k.kaynak, bas: k.bas, bit: k.bit, ucret: ucretler[i], durum: "ONAYLI", paket: pid }));
+  const yeni: Rez[] = kalemler.map((k, i) => ({ id: `r${++r}`, kullanici: u, kaynak: k.kaynak, bas: k.bas, bit: k.bit, ucret: ucretler[i] ?? 0, durum: "ONAYLI", paket: pid }));
   const bakiye = kul.bakiye - toplam;
   const ns: State = {
     ...s,
