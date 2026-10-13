@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as E from "@/lib/engine";
 
 export const Route = createFileRoute("/")({
@@ -40,6 +40,9 @@ function App() {
   const [secili, setSecili] = useState<string | null>(null);
   const [logSec, setLogSec] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<Sonuc | null>(null);
+  const [koyu, setKoyu] = useState(false);
+  useEffect(() => { setKoyu(localStorage.getItem("tema") === "koyu" || (!localStorage.getItem("tema") && matchMedia("(prefers-color-scheme: dark)").matches)); }, []);
+  useEffect(() => { document.documentElement.classList.toggle("dark", koyu); }, [koyu]);
   const [prefill, setPrefill] = useState<{ kaynak: string; bas: number; n: number } | null>(null);
 
   const run = (fn: (st: E.State) => { state: E.State; sonuc: any }, title: string) => {
@@ -99,6 +102,9 @@ function App() {
             ))}
           </div>
 
+          <button aria-label="Temayı değiştir" title={koyu ? "Açık moda geç" : "Koyu moda geç"}
+            onClick={() => { const v = !koyu; setKoyu(v); localStorage.setItem("tema", v ? "koyu" : "acik"); }}
+            className="grid h-9 w-9 place-items-center rounded-md border bg-card text-base hover:border-primary">{koyu ? "☀" : "☾"}</button>
           <select value={aktifU} onChange={(e) => setAktifU(e.target.value)}
             className="rounded-md border bg-card px-3 py-2 text-sm">
             {s.kullanicilar.map((u) => <option key={u.id} value={u.id}>{u.ad} · {u.rol}</option>)}
