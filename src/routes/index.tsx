@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
 const START = 8 * 60, END = 22 * 60, SPAN = END - START;
 const DURUM_CLS: Record<E.Durum, string> = {
   ONAYLI: "bg-st-onayli/85 text-background",
-  KULLANIMDA: "bg-st-kullanimda text-primary-foreground",
+  KULLANIMDA: "bg-st-kullanimda text-foreground",
   TAMAMLANDI: "bg-st-tamam/80 text-background",
   GELMEDI: "bg-st-gelmedi/30 text-foreground border border-dashed border-st-gelmedi",
   IPTAL: "bg-st-iptal/25 text-muted-foreground border border-dashed border-st-iptal line-through",
@@ -40,6 +40,7 @@ function App() {
   const [secili, setSecili] = useState<string | null>(null);
   const [logSec, setLogSec] = useState<number | null>(null);
   const [sonuc, setSonuc] = useState<Sonuc | null>(null);
+  const [prefill, setPrefill] = useState<{ kaynak: string; bas: number; n: number } | null>(null);
 
   const run = (fn: (st: E.State) => { state: E.State; sonuc: any }, title: string) => {
     const r = fn(s);
@@ -70,7 +71,7 @@ function App() {
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-4 px-6 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary font-mono text-sm font-bold text-primary-foreground">KP</div>
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary font-mono text-sm font-bold text-primary-foreground">KP</div>
             <div>
               <div className="text-sm font-semibold leading-tight">Kampüs Kaynak Rezervasyon</div>
               <div className="font-mono text-[11px] text-muted-foreground">{dosya}</div>
@@ -106,7 +107,7 @@ function App() {
       </header>
 
       <main className="mx-auto max-w-[1500px] space-y-5 px-6 py-5">
-        <Takvim s={s} gun={gun} setGun={setGun} secili={secili} setSecili={setSecili} />
+        <Takvim s={s} gun={gun} setGun={setGun} secili={secili} setSecili={setSecili} onSlot={(kaynak, bas) => { setPrefill({ kaynak, bas, n: Date.now() }); document.getElementById("talep")?.scrollIntoView({ behavior: "smooth", block: "center" }); }} />
 
         {sonuc && (
           <div className={`flex items-start justify-between gap-4 rounded-lg border p-4 ${sonuc.ok ? "border-success/50 bg-success/10" : "border-destructive/50 bg-destructive/10"}`}>
@@ -137,7 +138,7 @@ function App() {
         )}
 
         <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr_1fr]">
-          <TalepFormu s={s} kul={kul} gun={gun} run={run} setSonuc={setSonuc} />
+          <TalepFormu key={prefill?.n ?? 0} prefill={prefill} s={s} kul={kul} gun={gun} run={run} setSonuc={setSonuc} />
 
           <div className="space-y-5">
             {rez && (
@@ -191,7 +192,7 @@ function App() {
   );
 }
 
-function Takvim({ s, gun, setGun, secili, setSecili }: { s: E.State; gun: number; setGun: (n: number) => void; secili: string | null; setSecili: (id: string) => void }) {
+function Takvim({ s, gun, setGun, secili, setSecili, onSlot }: { s: E.State; gun: number; setGun: (n: number) => void; secili: string | null; setSecili: (id: string) => void; onSlot: (k: string, bas: number) => void }) {
   const d0 = gun * 1440;
   const pct = (m: number) => `${((Math.max(START, Math.min(END, m - d0)) - START) / SPAN) * 100}%`;
   const w = (a: number, b: number) => `${((Math.min(END, b - d0) - Math.max(START, a - d0)) / SPAN) * 100}%`;
@@ -199,9 +200,9 @@ function Takvim({ s, gun, setGun, secili, setSecili }: { s: E.State; gun: number
   const nowIn = s.saat - d0 >= START && s.saat - d0 <= END;
 
   return (
-    <section className="rounded-xl border bg-card">
+    <section className="rounded-xl border bg-card shadow-card">
       <div className="flex flex-wrap items-center gap-3 border-b px-5 py-3">
-        <h2 className="text-base font-semibold">Kaynak takvimi</h2>
+        <div><h2 className="text-base font-semibold">Kaynak takvimi</h2><p className="text-[11px] text-muted-foreground">Boş alana tıkla → talep formu dolsun</p></div>
         <div className="flex items-center gap-1">
           <button className="rounded px-2 py-1 hover:bg-accent" onClick={() => setGun(Math.max(0, gun - 1))}>‹</button>
           <span className="min-w-28 text-center font-mono text-sm">{E.fmtGun(d0)}</span>
@@ -236,7 +237,7 @@ function Takvim({ s, gun, setGun, secili, setSecili }: { s: E.State; gun: number
                   <div className="font-mono text-xs font-semibold">{k.id}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{k.ad} · {k.tur}</div>
                 </div>
-                <div className="relative flex-1 grid-15" style={{ height: lanes * 34 + 10, backgroundSize: `${100 / 56}% 100%` }}>
+                <div title="Boş alana tıklayarak talep oluştur" onClick={(e) => { if (e.target !== e.currentTarget) return; const r = e.currentTarget.getBoundingClientRect(); const m = START + Math.floor(((e.clientX - r.left) / r.width) * SPAN / 15) * 15; onSlot(k.id, Math.min(m, END - 60)); }} className="relative flex-1 grid-15 cursor-copy hover:bg-accent/40" style={{ height: lanes * 34 + 10, backgroundSize: `${100 / 56}% 100%` }}>
                   {s.bakim.filter((b) => b.kaynak === k.id && inDay(b.bas, b.bit)).map((b, i) => (
                     <div key={i} className="hatch absolute inset-y-1 rounded border border-st-bakim/60" style={{ left: pct(b.bas), width: w(b.bas, b.bit) }}
                       title={`Bakım ${E.fmtSaat(b.bas)}–${E.fmtSaat(b.bit)}`} />
@@ -263,9 +264,9 @@ function Takvim({ s, gun, setGun, secili, setSecili }: { s: E.State; gun: number
   );
 }
 
-function TalepFormu({ s, kul, gun, run, setSonuc }: { s: E.State; kul: E.Kullanici; gun: number; run: any; setSonuc: (x: Sonuc) => void }) {
+function TalepFormu({ s, kul, gun, run, setSonuc, prefill }: { prefill: { kaynak: string; bas: number } | null; s: E.State; kul: E.Kullanici; gun: number; run: any; setSonuc: (x: Sonuc) => void }) {
   const [mod, setMod] = useState<"tek" | "paket">("tek");
-  const [kalemler, setKalemler] = useState([{ kaynak: "ODA-1", bas: "11:00", bit: "12:00" }]);
+  const [kalemler, setKalemler] = useState([prefill ? { kaynak: prefill.kaynak, bas: E.fmtSaat(prefill.bas), bit: E.fmtSaat(prefill.bas + 60) } : { kaynak: "ODA-1", bas: "11:00", bit: "12:00" }]);
   const d0 = gun * 1440;
   const parsed = kalemler.map((k) => ({ kaynak: k.kaynak, bas: d0 + toMin(k.bas), bit: d0 + toMin(k.bit) }));
   const ucretler = useMemo(() => parsed.map((p) => (p.bit > p.bas ? E.fiyat(s, p.kaynak, p.bas, p.bit) : 0)), [s, JSON.stringify(parsed)]);
@@ -291,7 +292,7 @@ function TalepFormu({ s, kul, gun, run, setSonuc }: { s: E.State; kul: E.Kullani
   };
 
   return (
-    <Panel title="Talep formu" right={
+    <div id="talep"><Panel title="Talep formu" right={
       <div className="flex rounded-md bg-secondary p-0.5 text-xs">
         {(["tek", "paket"] as const).map((m) => (
           <button key={m} onClick={() => { setMod(m); if (m === "tek") setKalemler(kalemler.slice(0, 1)); else if (kalemler.length < 2) setKalemler([...kalemler, { kaynak: "LAB-1", bas: "11:00", bit: "12:00" }]); }}
@@ -331,7 +332,7 @@ function TalepFormu({ s, kul, gun, run, setSonuc }: { s: E.State; kul: E.Kullani
       <button onClick={gonder} className="mt-3 w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110">
         {mod === "tek" ? "Rezervasyon talep et" : `Paketi talep et (${kalemler.length} kalem)`}
       </button>
-    </Panel>
+    </Panel></div>
   );
 }
 
@@ -372,7 +373,7 @@ function KullaniciPaneli({ s, kul, setSecili }: { s: E.State; kul: E.Kullanici; 
 
 function Panel({ title, right, children }: { title: string; right?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border bg-card p-5">
+    <section className="rounded-xl border bg-card shadow-card p-5">
       <div className="mb-3 flex items-center justify-between gap-2"><h2 className="text-base font-semibold">{title}</h2>{right}</div>
       {children}
     </section>
